@@ -1,2 +1,2 @@
-# Python CLI Task Manager
-Simple CLI task manager written in python
+# Python Task Manager with FastAPI
+Simple task manager written in python using FastAPI framework
