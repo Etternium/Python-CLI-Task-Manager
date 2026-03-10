@@ -12,8 +12,3 @@ def delete_task(tasks, index):
 
 def edit_task(tasks, index, edited):
     tasks[index]["description"] = edited
-
-def get_incomplete_tasks(tasks):
-    for task in tasks:
-        if task["complete"] is False:
-            print(task)
