@@ -12,7 +12,6 @@ A simple CLI task manager written in Python with JSON-based persistence
 ## Future Improvements
 - Add time stamps such as when the task was created and due dates
 - Add search filter using keywords
-- Upgrade the project to a web-based app using FastAPI
 
 ## Technologies
 - Python 3.14+
