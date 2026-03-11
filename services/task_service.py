@@ -10,8 +10,10 @@ def add_task(db: Session, desc: str):
 
     return task
 
-def get_all_tasks(db: Session):
-    return db.query(Task).all()
+def get_all_tasks(db: Session, completed: bool = None):
+    if completed is None:
+        return db.query(Task).all()
+    return db.query(Task).filter(Task.complete == completed).all()
 
 def get_task_by_id(db: Session, index: int):
     task = db.query(Task).filter(Task.id == index).first()

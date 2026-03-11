@@ -4,6 +4,7 @@ from fastapi import FastAPI, HTTPException, Depends
 from database import Base, engine, LocalSession
 from schemas.task_schema import TaskResponse
 from sqlalchemy.orm import Session
+from typing import Optional
 
 Base.metadata.create_all(bind=engine)
 app = FastAPI(title="Task Manager API")
@@ -17,8 +18,8 @@ def get_db():
         db.close()
 
 @app.get("/tasks", response_model=list[TaskResponse])
-def get_tasks(db: Session = Depends(get_db)):
-    return get_all_tasks(db)
+def get_tasks(completed: Optional[bool] = None, db: Session = Depends(get_db)):
+    return get_all_tasks(db, completed)
 
 @app.get("/tasks/{index}", response_model=TaskResponse)
 def get_task_by_index(index: int, db: Session = Depends(get_db)):
@@ -33,7 +34,7 @@ def get_task_by_index(index: int, db: Session = Depends(get_db)):
 def create_task(desc: str, db: Session = Depends(get_db)):
     return add_task(db, desc)
 
-@app.put("/tasks/{index}", response_model=TaskResponse)
+@app.put("/tasks/setcomplete/{index}", response_model=TaskResponse)
 def complete_task(index: int, db: Session = Depends(get_db)):
     task = mark_complete(db, index)
 
