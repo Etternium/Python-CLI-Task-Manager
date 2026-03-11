@@ -6,7 +6,7 @@ from schemas.task_schema import TaskResponse
 from sqlalchemy.orm import Session
 
 Base.metadata.create_all(bind=engine)
-app = FastAPI()
+app = FastAPI(title="Task Manager API")
 
 def get_db():
     db = LocalSession()
@@ -20,7 +20,7 @@ def get_db():
 def get_tasks(db: Session = Depends(get_db)):
     return get_all_tasks(db)
 
-@app.get("/task/{index}", response_model=TaskResponse)
+@app.get("/tasks/{index}", response_model=TaskResponse)
 def get_task_by_index(index: int, db: Session = Depends(get_db)):
     task = get_task_by_id(db, index)
 
@@ -29,11 +29,11 @@ def get_task_by_index(index: int, db: Session = Depends(get_db)):
     
     return task
 
-@app.post("/newtask", response_model=TaskResponse)
+@app.post("/tasks", response_model=TaskResponse)
 def create_task(desc: str, db: Session = Depends(get_db)):
     return add_task(db, desc)
 
-@app.put("/tasks/{index}/complete", response_model=TaskResponse)
+@app.put("/tasks/{index}", response_model=TaskResponse)
 def complete_task(index: int, db: Session = Depends(get_db)):
     task = mark_complete(db, index)
 
@@ -42,7 +42,7 @@ def complete_task(index: int, db: Session = Depends(get_db)):
     
     return task
 
-@app.put("/update", response_model=TaskResponse)
+@app.put("/tasks/{index}", response_model=TaskResponse)
 def update_task(index: int, new_desc: str, db: Session = Depends(get_db)):
     task = edit_task(db, index, new_desc)
 
