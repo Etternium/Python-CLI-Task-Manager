@@ -1,5 +1,6 @@
 from models.task_model import Task
 from sqlalchemy.orm import Session
+from sqlalchemy.sql import func
 
 def add_task(db: Session, desc: str):
     task = Task(description=desc)
@@ -28,6 +29,7 @@ def mark_complete(db: Session, index: int):
 
     if task:
         task.complete = True
+        task.updated_at = func.now()
         db.commit()
         db.refresh(task)
     
@@ -47,26 +49,7 @@ def edit_task(db: Session, index: int, new_desc: str):
 
     if task:
         task.description = new_desc
+        task.updated_at = func.now()
         db.commit()
 
     return task
-
-# def add_task(tasks, description):
-#     task = {
-#         "description": description,
-#         "complete": False
-#     }
-
-#     tasks.append(task)
-#     return task
-
-# def mark_complete(tasks, index):
-#     tasks[index]["complete"] = True
-#     return tasks[index]
-
-# def delete_task(tasks, index):
-#     return tasks.pop(index)
-
-# def edit_task(tasks, index: int, edited: str):
-#     tasks[index]["description"] = edited
-#     return tasks[index]
