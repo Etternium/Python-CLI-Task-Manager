@@ -1,51 +1,61 @@
-from services.task_service import add_task, mark_complete, delete_task, edit_task
-from storage.json_storage import save_tasks, load_tasks
-from fastapi import FastAPI, HTTPException
+from services.task_service import *
+from fastapi import FastAPI, HTTPException, Depends
 
+from database import Base, engine, LocalSession
+from schemas.task_schema import TaskResponse
+from sqlalchemy.orm import Session
+
+Base.metadata.create_all(bind=engine)
 app = FastAPI()
-tasks = load_tasks()
 
-@app.get("/tasks")
-def get_tasks(completed: bool | None = None):
+def get_db():
+    db = LocalSession()
+
+    try:
+        yield db
+    finally:
+        db.close()
+
+@app.get("/tasks", response_model=list[TaskResponse])
+def get_tasks(db: Session = Depends(get_db)):
+    return get_all_tasks(db)
+
+@app.get("/task/{index}", response_model=TaskResponse)
+def get_task_by_index(index: int, db: Session = Depends(get_db)):
+    task = get_task_by_id(db, index)
+
+    if not task:
+        raise HTTPException(404, "Task not found")
     
-    if completed is None:
-        return tasks
-    
-    return [task for task in tasks if task["complete"] == completed]
-
-@app.get("/task/{index}")
-def get_task_by_index(index: int):
-    return tasks[index - 1]
-
-@app.post("/tasks")
-def create_task(desc: str):
-    task = add_task(tasks, desc)
-    save_tasks(tasks)
     return task
 
-@app.put("/tasks/{index}/complete")
-def complete_task(index: int):
-    try:
-        task = mark_complete(tasks, index - 1)
-        save_tasks(tasks)
-        return task
-    except IndexError:
-        return HTTPException(status_code=404, detail="Task not found")
+@app.post("/newtask", response_model=TaskResponse)
+def create_task(desc: str, db: Session = Depends(get_db)):
+    return add_task(db, desc)
 
-@app.put("/update")
-def update_task(index: int, desc: str):
-    try:
-        task = edit_task(tasks, index - 1, desc)
-        save_tasks(tasks)
-        return task
-    except IndexError:
-        return HTTPException(status_code=404, detail="Task not found")
+@app.put("/tasks/{index}/complete", response_model=TaskResponse)
+def complete_task(index: int, db: Session = Depends(get_db)):
+    task = mark_complete(db, index)
+
+    if not task:
+        raise HTTPException(404, "Task not found")
+    
+    return task
+
+@app.put("/update", response_model=TaskResponse)
+def update_task(index: int, new_desc: str, db: Session = Depends(get_db)):
+    task = edit_task(db, index, new_desc)
+
+    if not task:
+        raise HTTPException(404, "Task not found")
+    
+    return task
 
 @app.delete("/tasks/{index}")
-def remove_task(index: int):
-    try:
-        task = delete_task(tasks, index - 1)
-        save_tasks(tasks)
-        return {"deleted": task}
-    except IndexError:
-        return HTTPException(status_code=404, detail="Task not found")
+def remove_task(index: int, db: Session = Depends(get_db)):
+    task = delete_task(db, index)
+
+    if not task:
+        raise HTTPException(404, "Task not found")
+    
+    return {"message": "Task deleted"}
